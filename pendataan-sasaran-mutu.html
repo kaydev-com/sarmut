@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pendataan Sasaran Mutu — Dept Belum Lapor</title>
+<style>
+  :root{
+    --navy:#0e3a5d; --blue:#1565c0; --blue-soft:#e3eefb;
+    --amber:#b45309; --amber-soft:#fdf0dd;
+    --ink:#17222c; --muted:#66788a; --line:#dbe3ec;
+    --bg:#eef2f6; --card:#ffffff; --ok:#128c4a; --danger:#c0392b;
+    --radius:14px; --shadow:0 2px 10px rgba(14,58,93,.08);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html{scroll-behavior:smooth}
+  body{margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+       background:var(--bg); color:var(--ink); font-size:15px; line-height:1.45; padding-bottom:92px}
+  button{font:inherit; cursor:pointer}
+  input{font:inherit}
+
+  /* ---------- Header ---------- */
+  header{position:sticky; top:0; z-index:20; background:var(--navy); color:#fff;
+         padding:14px 16px 12px; box-shadow:0 2px 12px rgba(0,0,0,.18)}
+  header h1{margin:0; font-size:18px; font-weight:700; letter-spacing:.2px}
+  header p{margin:2px 0 10px; font-size:12.5px; opacity:.85}
+  .stats{display:flex; gap:8px}
+  .stat{flex:1; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18);
+        border-radius:10px; padding:7px 6px; text-align:center}
+  .stat b{display:block; font-size:17px; line-height:1.15}
+  .stat span{font-size:10.5px; opacity:.85; text-transform:uppercase; letter-spacing:.4px}
+
+  main{max-width:640px; margin:0 auto; padding:12px 12px 4px}
+
+  /* ---------- Toolbar ---------- */
+  .toolbar{display:flex; gap:8px; margin:2px 0 12px}
+  .toolbar .search{flex:1; display:flex; align-items:center; gap:6px; background:var(--card);
+        border:1px solid var(--line); border-radius:10px; padding:0 10px; box-shadow:var(--shadow)}
+  .toolbar .search input{flex:1; border:0; outline:0; padding:10px 0; background:transparent; min-width:0}
+  .btn{border:0; border-radius:10px; padding:10px 14px; font-weight:600; font-size:14px}
+  .btn-blue{background:var(--blue); color:#fff}
+  .btn-blue:active{background:#0f4c94}
+  .btn-ghost{background:var(--card); color:var(--navy); border:1px solid var(--line)}
+  .btn-green{background:#1faa55; color:#fff}
+  .btn-green:active{background:#157347}
+
+  .addbox{display:none; background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+          padding:12px; margin-bottom:12px; box-shadow:var(--shadow)}
+  .addbox.open{display:flex; gap:8px}
+  .addbox input{flex:1; border:1px solid var(--line); border-radius:10px; padding:10px; min-width:0; outline-color:var(--blue)}
+
+  .hint{font-size:12.5px; color:var(--muted); margin:0 2px 10px}
+  .hint b{color:var(--navy)}
+
+  /* ---------- Dept card ---------- */
+  .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+        padding:12px; margin-bottom:10px; box-shadow:var(--shadow)}
+  .card-head{display:flex; align-items:center; gap:8px; margin-bottom:10px}
+  .num{flex:none; width:26px; height:26px; border-radius:8px; background:var(--navy); color:#fff;
+       display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700}
+  .dept-name{flex:1; font-weight:700; font-size:15.5px; min-width:0; overflow-wrap:anywhere}
+  .icon-btn{flex:none; width:32px; height:32px; border-radius:8px; border:1px solid var(--line);
+            background:#fff; color:var(--muted); font-size:14px; line-height:1}
+  .icon-btn:active{background:var(--bg)}
+  .icon-btn.del{color:var(--danger)}
+
+  .group{border-top:1px dashed var(--line); padding-top:9px; margin-top:9px}
+  .group:first-of-type{border-top:0; padding-top:0; margin-top:0}
+  .group-head{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:7px}
+  .group-title{font-size:12px; font-weight:800; letter-spacing:.6px; text-transform:uppercase}
+  .group-title.asli{color:var(--blue)} .group-title.mod{color:var(--amber)}
+  .group-tools{display:flex; gap:6px; align-items:center}
+  .mini{border:1px solid var(--line); background:#fff; color:var(--muted); border-radius:999px;
+        padding:3px 9px; font-size:11.5px; font-weight:600}
+  .badge{font-size:11px; font-weight:700; padding:3px 8px; border-radius:999px; display:none}
+  .badge.show{display:inline-block}
+  .badge.asli{background:var(--blue-soft); color:var(--blue)}
+  .badge.mod{background:var(--amber-soft); color:var(--amber)}
+
+  .months{display:grid; grid-template-columns:repeat(6,1fr); gap:6px}
+  .chip{border:1px solid var(--line); background:#f7fafc; color:var(--muted); border-radius:9px;
+        padding:8px 0; font-size:13px; font-weight:600; text-align:center; user-select:none}
+  .chip:active{transform:scale(.96)}
+  .chip.on-asli{background:var(--blue); border-color:var(--blue); color:#fff}
+  .chip.on-mod{background:var(--amber); border-color:var(--amber); color:#fff}
+
+  .empty{display:none; text-align:center; color:var(--muted); padding:26px 10px; font-size:14px}
+  .empty.show{display:block}
+
+  /* ---------- Output ---------- */
+  .out-wrap{background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+            box-shadow:var(--shadow); margin-top:16px; overflow:hidden}
+  .out-head{display:flex; align-items:center; justify-content:space-between;
+            padding:12px 14px; border-bottom:1px solid var(--line); background:#f8fafc}
+  .out-head h2{margin:0; font-size:15px}
+  .out-head span{font-size:11.5px; color:var(--ok); font-weight:700}
+  #output{margin:0; padding:14px; white-space:pre-wrap; overflow-wrap:anywhere;
+          font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13px; line-height:1.6;
+          max-height:430px; overflow:auto}
+  .out-actions{display:flex; gap:8px; padding:12px; border-top:1px solid var(--line)}
+  .out-actions .btn{flex:1; padding:12px 8px}
+  .danger-row{text-align:center; margin:14px 0 4px}
+  .danger-row button{background:none; border:0; color:var(--danger); font-size:13px; font-weight:600; text-decoration:underline}
+
+  /* ---------- Bottom bar ---------- */
+  .bottom-bar{position:fixed; left:0; right:0; bottom:0; z-index:20; background:rgba(255,255,255,.97);
+        border-top:1px solid var(--line); padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+        display:flex; gap:8px; box-shadow:0 -3px 14px rgba(14,58,93,.08)}
+  .bottom-bar .btn{flex:1; padding:13px 8px; font-size:14.5px; border-radius:12px}
+  .bottom-bar .lbl{flex:none; align-self:center; font-size:12px; color:var(--muted); max-width:86px; line-height:1.25}
+
+  #toast{position:fixed; left:50%; bottom:104px; transform:translateX(-50%) translateY(16px); z-index:50;
+         background:#17222c; color:#fff; padding:10px 18px; border-radius:999px; font-size:13.5px; font-weight:600;
+         opacity:0; pointer-events:none; transition:.25s; box-shadow:0 6px 20px rgba(0,0,0,.25); white-space:nowrap}
+  #toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+  @media (min-width:560px){ .months{grid-template-columns:repeat(12,1fr)} }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📋 Pendataan Sasaran Mutu</h1>
+  <p>Departemen yang belum melaporkan — Asli &amp; Modifikasi</p>
+  <div class="stats">
+    <div class="stat"><b id="st-total">0</b><span>Total Dept</span></div>
+    <div class="stat"><b id="st-asli">0</b><span>Belum Asli</span></div>
+    <div class="stat"><b id="st-mod">0</b><span>Belum Modif.</span></div>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <label class="search">🔍 <input id="search" type="search" placeholder="Cari departemen…" autocomplete="off"></label>
+    <button class="btn btn-blue" id="btn-show-add" type="button">+ Dept</button>
+  </div>
+
+  <form class="addbox" id="addbox">
+    <input id="new-dept" type="text" placeholder="Nama dept, cth: Dept. Produksi" autocomplete="off">
+    <button class="btn btn-blue" type="submit">Tambah</button>
+  </form>
+
+  <p class="hint">Ketuk bulan yang <b>belum dilaporkan</b> pada tiap departemen. Warna <b style="color:var(--blue)">biru = Asli</b>, <b style="color:var(--amber)">oranye = Modifikasi</b>. Data tersimpan otomatis di HP ini.</p>
+
+  <section id="list"></section>
+  <div class="empty" id="empty">Tidak ada departemen yang cocok dengan pencarian.</div>
+
+  <section class="out-wrap" id="output-section">
+    <div class="out-head"><h2>📄 Hasil Teks (siap kirim WA)</h2><span>● LIVE</span></div>
+    <pre id="output"></pre>
+    <div class="out-actions">
+      <button class="btn btn-blue" id="btn-copy" type="button">📋 Salin Teks</button>
+      <button class="btn btn-green" id="btn-wa" type="button">💬 Kirim ke WA</button>
+    </div>
+  </section>
+
+  <div class="danger-row">
+    <button id="btn-clear" type="button">Bersihkan semua pilihan bulan</button> ·
+    <button id="btn-reset" type="button">Reset ke daftar awal</button>
+  </div>
+</main>
+
+<div class="bottom-bar">
+  <div class="lbl" id="bar-info">0 dept belum lapor</div>
+  <button class="btn btn-blue" id="btn-copy2" type="button">📋 Salin</button>
+  <button class="btn btn-green" id="btn-wa2" type="button">💬 WhatsApp</button>
+</div>
+
+<div id="toast" role="status"></div>
+
+<script>
+"use strict";
+const MONTHS_FULL = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+const KEY = "sasaranMutuDeptV1";
+
+/* Data awal = contoh laporan terakhir */
+const DEFAULT_DATA = [
+  {name:"Dept. Liquid",          asli:[3,4],   mod:[3,4]},
+  {name:"Dept. Non Liquid",      asli:[3,4],   mod:[3,4]},
+  {name:"Dept. QC",              asli:[3,4],   mod:[3,4]},
+  {name:"Dept. Engineering",     asli:[3,4],   mod:[3,4]},
+  {name:"Logistik",              asli:[3,4],   mod:[3,4]},
+  {name:"GA",                    asli:[2,3,4], mod:[2,3,4]},
+  {name:"HRD",                   asli:[3,4],   mod:[3,4]},
+  {name:"Purchasing Lokal",      asli:[2,3,4], mod:[]},
+  {name:"IT",                    asli:[2,3,4], mod:[]},
+  {name:"Klinik",                asli:[3],     mod:[]},
+  {name:"PPIC",                  asli:[5],     mod:[]},
+  {name:"Purchasing Kelapa",     asli:[5],     mod:[]},
+  {name:"HSE",                   asli:[5],     mod:[]}
+];
+
+let data = load();
+
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(raw){ const d = JSON.parse(raw); if(Array.isArray(d) && d.length) return sanitize(d); }
+  }catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+function sanitize(d){
+  return d.filter(x=>x && typeof x.name==="string" && x.name.trim())
+          .map(x=>({name:x.name.trim(),
+                    asli:uniq(x.asli), mod:uniq(x.mod)}));
+}
+function uniq(a){ return Array.isArray(a) ? [...new Set(a.filter(n=>Number.isInteger(n)&&n>=0&&n<12))].sort((x,y)=>x-y) : []; }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(data)); }catch(e){} }
+
+/* ---------------- Render ---------------- */
+const listEl = document.getElementById("list");
+const emptyEl = document.getElementById("empty");
+
+function chipHTML(deptIdx, kind, m){
+  const on = data[deptIdx][kind].includes(m);
+  return `<button type="button" class="chip ${on ? (kind==="asli"?"on-asli":"on-mod") : ""}"
+      data-dept="${deptIdx}" data-kind="${kind}" data-month="${m}" aria-pressed="${on}">${MONTHS_SHORT[m]}</button>`;
+}
+function groupHTML(deptIdx, kind, label){
+  const sel = data[deptIdx][kind];
+  const badge = sel.length ? `<span class="badge show ${kind}">${sel.map(m=>MONTHS_FULL[m]).join("-")}</span>` : "";
+  return `<div class="group">
+    <div class="group-head">
+      <span class="group-title ${kind}">${label}</span>
+      <span class="group-tools">${badge}
+        <button type="button" class="mini" data-all="${deptIdx}:${kind}">Semua</button>
+        <button type="button" class="mini" data-none="${deptIdx}:${kind}">Bersihkan</button>
+      </span>
+    </div>
+    <div class="months">${MONTHS_SHORT.map((_,m)=>chipHTML(deptIdx,kind,m)).join("")}</div>
+  </div>`;
+}
+function render(){
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  let visible = 0;
+  listEl.innerHTML = data.map((d,i)=>{
+    if(q && !d.name.toLowerCase().includes(q)) return "";
+    visible++;
+    return `<article class="card">
+      <div class="card-head">
+        <span class="num">${i+1}</span>
+        <span class="dept-name">${escapeHTML(d.name)}</span>
+        <button type="button" class="icon-btn" data-move ="${i}:-1" title="Naik">↑</button>
+        <button type="button" class="icon-btn" data-move="${i}:1" title="Turun">↓</button>
+        <button type="button" class="icon-btn" data-edit="${i}" title="Ubah nama">✎</button>
+        <button type="button" class="icon-btn del" data-del="${i}" title="Hapus">✕</button>
+      </div>
+      ${groupHTML(i,"asli","A · Sasaran Mutu — Asli")}
+      ${groupHTML(i,"mod","B · Sasaran Mutu — Modifikasi")}
+    </article>`;
+  }).join("");
+  emptyEl.classList.toggle("show", visible===0);
+  updateStatsAndOutput();
+  save();
+}
+function escapeHTML(s){ return s.replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* ---------------- Output ---------------- */
+function monthText(arr){ return arr.map(m=>MONTHS_FULL[m]).join("-"); }
+function buildOutput(){
+  const asli = data.filter(d=>d.asli.length);
+  const mod  = data.filter(d=>d.mod.length);
+  const lines = [];
+  lines.push("Dear all,");
+  lines.push("Berikut kami sampaikan departemen yang belum melaporkan Sasaran Mutu Asli dan Modifikasi");
+  lines.push("");
+  lines.push("A. Sasaran Mutu (ASLI), sbb :");
+  if(asli.length) asli.forEach((d,i)=>lines.push(`${i+1}. ${d.name} (${monthText(d.asli)})`));
+  else lines.push("- Semua departemen sudah melaporkan -");
+  lines.push("");
+  lines.push("B. Sasaran Mutu (Modifikasi), sbb :");
+  if(mod.length) mod.forEach((d,i)=>lines.push(`${i+1}. ${d.name} (${monthText(d.mod)})`));
+  else lines.push("- Semua departemen sudah melaporkan -");
+  lines.push("");
+  lines.push("Mohon bantuannya untuk dapat segera difollowup. Terimakasih🙏🏻");
+  return lines.join("\n");
+}
+function updateStatsAndOutput(){
+  const a = data.filter(d=>d.asli.length).length;
+  const m = data.filter(d=>d.mod.length).length;
+  document.getElementById("st-total").textContent = data.length;
+  document.getElementById("st-asli").textContent = a;
+  document.getElementById("st-mod").textContent = m;
+  document.getElementById("bar-info").textContent = `${a} belum Asli · ${m} belum Modif.`;
+  document.getElementById("output").textContent = buildOutput();
+}
+
+/* ---------------- Events ---------------- */
+listEl.addEventListener("click", e=>{
+  const chip = e.target.closest(".chip");
+  if(chip){
+    const i=+chip.dataset.dept, kind=chip.dataset.kind, m=+chip.dataset.month;
+    const arr = data[i][kind];
+    const at = arr.indexOf(m);
+    if(at>=0) arr.splice(at,1); else { arr.push(m); arr.sort((x,y)=>x-y); }
+    render(); return;
+  }
+  const all = e.target.closest("[data-all]");
+  if(all){ const [i,k]=all.dataset.all.split(":"); data[+i][k]=MONTHS_SHORT.map((_,m)=>m); render(); return; }
+  const none = e.target.closest("[data-none]");
+  if(none){ const [i,k]=none.dataset.none.split(":"); data[+i][k]=[]; render(); return; }
+  const mv = e.target.closest("[data-move]");
+  if(mv){
+    const [i,dir]=mv.dataset.move.split(":").map(Number);
+    const j=i+dir; if(j<0||j>=data.length) return;
+    [data[i],data[j]]=[data[j],data[i]]; render(); return;
+  }
+  const ed = e.target.closest("[data-edit]");
+  if(ed){
+    const i=+ed.dataset.edit;
+    const v = prompt("Ubah nama departemen:", data[i].name);
+    if(v && v.trim()){ data[i].name=v.trim(); render(); toast("Nama departemen diubah ✓"); }
+    return;
+  }
+  const del = e.target.closest("[data-del]");
+  if(del){
+    const i=+del.dataset.del;
+    if(confirm(`Hapus departemen "${data[i].name}" dari daftar?`)){ data.splice(i,1); render(); toast("Departemen dihapus"); }
+  }
+});
+
+document.getElementById("search").addEventListener("input", render);
+
+document.getElementById("btn-show-add").addEventListener("click", ()=>{
+  const box = document.getElementById("addbox");
+  box.classList.toggle("open");
+  if(box.classList.contains("open")) document.getElementById("new-dept").focus();
+});
+document.getElementById("addbox").addEventListener("submit", e=>{
+  e.preventDefault();
+  const inp = document.getElementById("new-dept");
+  const name = inp.value.trim();
+  if(!name) return;
+  if(data.some(d=>d.name.toLowerCase()===name.toLowerCase())){ toast("Dept itu sudah ada"); return; }
+  data.push({name, asli:[], mod:[]});
+  inp.value=""; render(); toast("Departemen ditambahkan ✓");
+  window.scrollTo({top:document.body.scrollHeight, behavior:"smooth"});
+});
+
+async function copyOutput(){
+  const text = buildOutput();
+  try{ await navigator.clipboard.writeText(text); }
+  catch(e){
+    const ta=document.createElement("textarea");
+    ta.value=text; ta.style.position="fixed"; ta.style.opacity="0";
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); }catch(_){}
+    ta.remove();
+  }
+  toast("Teks tersalin ✓ Tinggal paste di WA");
+}
+function sendWA(){
+  window.open("https://wa.me/?text="+encodeURIComponent(buildOutput()), "_blank");
+}
+["btn-copy","btn-copy2"].forEach(id=>document.getElementById(id).addEventListener("click", copyOutput));
+["btn-wa","btn-wa2"].forEach(id=>document.getElementById(id).addEventListener("click", sendWA));
+
+document.getElementById("btn-clear").addEventListener("click", ()=>{
+  if(!confirm("Bersihkan semua pilihan bulan di semua departemen?")) return;
+  data.forEach(d=>{ d.asli=[]; d.mod=[]; }); render(); toast("Semua pilihan dibersihkan");
+});
+document.getElementById("btn-reset").addEventListener("click", ()=>{
+  if(!confirm("Reset daftar departemen & pilihan ke contoh awal?")) return;
+  data = JSON.parse(JSON.stringify(DEFAULT_DATA)); render(); toast("Di-reset ke daftar awal ✓");
+});
+
+let toastTimer;
+function toast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"),2200);
+}
+
+render();
+</script>
+</body>
+</html>
